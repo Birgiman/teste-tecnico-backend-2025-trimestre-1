@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { createKeyv } from '@keyv/redis';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { createKeyv } from '@keyv/redis';
         ttl: 60_600,
       }),
     }),
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
