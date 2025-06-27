@@ -9,6 +9,11 @@ async function bootstrap() {
 
   await app.listen(port, '0.0.0.0').then(() => {
     console.log(`🚀 HTTP server running at -> ${port}`);
+    console.log(
+      '[CACHE] Redis conectado em:',
+      process.env.REDIS_URL ??
+        `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
+    );
   });
 }
 bootstrap().catch((err) => {

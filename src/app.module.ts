@@ -6,12 +6,15 @@ import { AppService } from './app.service';
 import { createKeyv } from '@keyv/redis';
 import { UploadModule } from './upload/upload.module';
 
+const host = process.env.REDIS_HOST ?? 'localhost';
+const port = process.env.REDIS_PORT ?? '6379';
+
 @Module({
   imports: [
     CacheModule.registerAsync({
       isGlobal: true,
       useFactory: () => ({
-        store: createKeyv(process.env.REDIS_URL || 'redis://localhost:6379'),
+        store: createKeyv(`redis://${host};${port}`),
         ttl: 60_600,
       }),
     }),

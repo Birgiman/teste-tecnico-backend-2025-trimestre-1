@@ -10,5 +10,12 @@ export class UploadService {
   async cacheFile(file: Express.Multer.File) {
     const buffer = await fs.readFile(file.path);
     await this.cache.set(file.filename, buffer, 60);
+    console.log(`[REDIS] Arquivo ${file.filename} salvo no cache.`);
+
+    const result = await this.cache.get(file.filename);
+    console.log(
+      `[REDIS] Verificação do cache:`,
+      result ? '✔️ Encontrado' : '❌ Não encontrado',
+    );
   }
 }
