@@ -1,6 +1,7 @@
 import { Request } from 'express';
 import { diskStorage, FileFilterCallback } from 'multer';
 import { extname } from 'path';
+import { FileSizeLimit } from 'src/config/constants';
 
 export const multerOptions = {
   storage: diskStorage({
@@ -15,7 +16,7 @@ export const multerOptions = {
     },
   }),
   limits: {
-    fileSize: 10 * 1024 * 1024,
+    fileSize: FileSizeLimit.DEFAULT,
   },
   fileFilter: (
     req: Request,
