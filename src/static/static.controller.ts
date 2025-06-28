@@ -32,9 +32,8 @@ export class StaticController {
     if (file.buffer) {
       this.responseService.streamFromBuffer(res, file.buffer);
     } else {
-      const { path, size } = await this.staticService.getFileStream(filename);
-      const stream = createReadStream(path);
-      this.responseService.streamWithRange(req, res, size, stream);
+      const stream = createReadStream(file.path);
+      this.responseService.streamWithRange(req, res, file.size, stream);
     }
   }
 }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Stats } from 'fs';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { VideoFileWithBuffer } from 'src/types/video-file-metadata.type';
 
 @Injectable()
 export class VideoStorageService {
@@ -11,9 +12,9 @@ export class VideoStorageService {
     return path.join(this.videoDir, filename);
   }
 
-  async save(file: Express.Multer.File): Promise<Buffer> {
+  async save(file: Express.Multer.File): Promise<VideoFileWithBuffer> {
     const buffer = await fs.readFile(file.path);
-    return buffer;
+    return { buffer: buffer };
   }
 
   async exists(filename: string): Promise<boolean> {
