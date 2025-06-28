@@ -2,7 +2,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
 import { Cache } from 'cache-manager';
 import { CacheTTL } from 'src/config/constants';
-import { VideoStorageService } from './video-storage.service';
+import { VideoStorageService } from 'src/services/video-storage.service';
 
 @Injectable()
 export class UploadService {

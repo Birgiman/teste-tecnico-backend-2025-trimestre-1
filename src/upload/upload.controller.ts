@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from './config/multer.config';
-import { UploadService } from './service/upload.service';
+import { UploadService } from './upload.service';
 
 @Controller('upload')
 export class UploadController {

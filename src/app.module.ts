@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { createKeyv } from '@keyv/redis';
+import { StaticModule } from './static/static.module';
 import { UploadModule } from './upload/upload.module';
 
 const host = process.env.REDIS_HOST ?? 'localhost';
@@ -19,6 +20,7 @@ const port = process.env.REDIS_PORT ?? '6379';
       }),
     }),
     UploadModule,
+    StaticModule,
   ],
   controllers: [AppController],
   providers: [AppService],
