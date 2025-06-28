@@ -34,6 +34,12 @@ export class StreamResponseService {
     }
   }
   streamFromBuffer(res: Response, buffer: Buffer) {
+    if (!Buffer.isBuffer(buffer)) {
+      console.error('[ERRO] Buffer inválido ou ausente no cache');
+      res.status(500).json({ error: 'Erro interno ao processar o buffer' });
+      return;
+    }
+
     res.writeHead(200, {
       'Content-Type': 'video/mp4',
       'Content-Length': buffer.length,

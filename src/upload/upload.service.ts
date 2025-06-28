@@ -12,12 +12,8 @@ export class UploadService {
   ) {}
 
   async cacheFile(file: Express.Multer.File) {
-    const { buffer: fileBuffer } = await this.videoStorage.save(file);
-    await this.cache.set(
-      file.filename,
-      fileBuffer.toString('base64'),
-      CacheTTL.DEFAULT,
-    );
+    const buffer = await this.videoStorage.save(file);
+    await this.cache.set(file.filename, buffer, CacheTTL.DEFAULT);
     console.log(`[REDIS] Arquivo ${file.filename} salvo no cache.`);
 
     const result = await this.cache.get(file.filename);

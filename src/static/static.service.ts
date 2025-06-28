@@ -1,5 +1,9 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Cache } from 'cache-manager';
 import { CacheTTL } from 'src/config/constants';
 import { VideoStorageService } from 'src/services/video-storage.service';
@@ -17,29 +21,50 @@ export class StaticService {
     if (!exists) return false;
 
     console.log('[GET] Checking cache...');
-    const cached = await this.cache.get<string>(filename);
+    const cached = await this.cache.get<Buffer>(filename);
     console.log('[CACHED]', !!cached);
 
     if (cached) {
       console.log('[REDIS] Cache usado para', filename);
-      const buffer = Buffer.from(cached, 'base64');
-      return { buffer };
+      return { buffer: cached };
     }
 
     const buffer = await this.storage.readAsBuffer(filename);
-    await this.cache.set(filename, buffer.toString('base64'), CacheTTL.DEFAULT);
-    console.log('[REDIS] Cache criado para', filename);
+    if (!buffer || !Buffer.isBuffer(buffer) || buffer.length === 0) {
+      throw new InternalServerErrorException(
+        'Arquivo inválido ou corrompido no armazenamento',
+      );
+    }
+
+    await this.cache.set(filename, buffer, CacheTTL.DEFAULT);
 
     return { buffer };
   }
 
   async getFileStream(filename: string): Promise<CachedVideoResponse> {
-    const fullPath = await this.storage.getPath(filename);
+    const exists = await this.storage.exists(filename);
+    if (!exists) {
+      throw new Error(`Arquivo não encontrado: ${filename}`);
+    }
+
+    const path = await this.storage.getPath(filename);
     const stat = await this.storage.stat(filename);
 
     return {
-      path: fullPath,
+      path,
       size: stat.size,
     };
+  }
+
+  async cachedFile(filename: string): Promise<void> {
+    const buffer = await this.storage.readAsBuffer(filename);
+    if (!buffer || !Buffer.isBuffer(buffer) || buffer.length === 0) {
+      console.warn(
+        `[REDIS] Não foi possível criar cache para ${filename}: buffer vazio ou inválido. Possível problema durante o upload.`,
+      );
+      return;
+    }
+    await this.cache.set(filename, buffer, CacheTTL.DEFAULT);
+    console.log('[REDIS] Cache criado para', filename);
   }
 }

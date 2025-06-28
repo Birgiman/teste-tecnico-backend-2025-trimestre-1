@@ -24,7 +24,7 @@ export class StaticController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    const file = await this.staticService.getFileBuffer(filename);
+    const file = await this.staticService.getFileStream(filename);
     if (!file) {
       throw new NotFoundException('Arquivo não encontrado');
     }
