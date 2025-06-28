@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { diskStorage, FileFilterCallback } from 'multer';
-import { extname } from 'path';
+import * as path from 'path';
 import { FileSizeLimit } from 'src/config/constants';
 
 export const multerOptions = {
@@ -11,7 +11,8 @@ export const multerOptions = {
       file: Express.Multer.File,
       cb: (error: Error | null, filename: string) => void,
     ) => {
-      const uniqueName = `${Date.now()}${extname(file.originalname)}`;
+      const originalName = file.originalname.replace(/\s+/g, '_');
+      const uniqueName = `${path.parse(originalName).name}-${Date.now()}${path.extname(originalName)}`;
       cb(null, uniqueName);
     },
   }),
