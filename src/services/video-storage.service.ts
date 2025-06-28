@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Stats } from 'fs';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -35,5 +36,9 @@ export class VideoStorageService {
   async readAsBuffer(filename: string): Promise<Buffer> {
     const fullPath = this.getFullPath(filename);
     return await fs.readFile(fullPath);
+  }
+
+  async stat(filename: string): Promise<Stats> {
+    return await fs.stat(this.getFullPath(filename));
   }
 }

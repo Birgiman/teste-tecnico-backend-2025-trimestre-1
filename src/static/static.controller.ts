@@ -7,11 +7,16 @@ import {
   Res,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { createReadStream } from 'fs';
+import { StreamResponseService } from 'src/services/stream-response.service';
 import { StaticService } from './static.service';
 
 @Controller('static')
 export class StaticController {
-  constructor(private readonly staticService: StaticService) {}
+  constructor(
+    private readonly staticService: StaticService,
+    private readonly responseService: StreamResponseService,
+  ) {}
 
   @Get('video/:filename')
   async streamVideo(
@@ -19,9 +24,17 @@ export class StaticController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    const stream = await this.staticService.getVideoStream(filename, req, res);
-    if (!stream) {
+    const file = await this.staticService.getFileBuffer(filename);
+    if (!file) {
       throw new NotFoundException('Arquivo não encontrado');
+    }
+
+    if (file.buffer) {
+      this.responseService.streamFromBuffer(res, file.buffer);
+    } else {
+      const { path, size } = await this.staticService.getFileStream(filename);
+      const stream = createReadStream(path);
+      this.responseService.streamWithRange(req, res, size, stream);
     }
   }
 }
