@@ -14,7 +14,7 @@ const port = process.env.REDIS_PORT ?? '6379';
     CacheModule.registerAsync({
       isGlobal: true,
       useFactory: () => ({
-        store: createKeyv(`redis://${host};${port}`),
+        store: createKeyv(`redis://${host}:${port}`),
         ttl: 60_600,
       }),
     }),

@@ -1,14 +1,17 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
 import { Cache } from 'cache-manager';
-import * as fs from 'fs/promises';
+import { VideoStorageService } from './video-storage.service';
 
 @Injectable()
 export class UploadService {
-  constructor(@Inject(CACHE_MANAGER) private cache: Cache) {}
+  constructor(
+    @Inject(CACHE_MANAGER) private cache: Cache,
+    private readonly videoStorage: VideoStorageService,
+  ) {}
 
   async cacheFile(file: Express.Multer.File) {
-    const buffer = await fs.readFile(file.path);
+    const buffer = await this.videoStorage.save(file);
     await this.cache.set(file.filename, buffer, 60);
     console.log(`[REDIS] Arquivo ${file.filename} salvo no cache.`);
 
