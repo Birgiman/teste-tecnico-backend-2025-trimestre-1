@@ -1,3 +1,4 @@
+import { InternalServerErrorException } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ReadStream } from 'fs';
 
@@ -36,8 +37,9 @@ export class StreamResponseService {
   streamFromBuffer(res: Response, buffer: Buffer) {
     if (!Buffer.isBuffer(buffer)) {
       console.error('[ERRO] Buffer inválido ou ausente no cache');
-      res.status(500).json({ error: 'Erro interno ao processar o buffer' });
-      return;
+      throw new InternalServerErrorException(
+        'Erro interno ao processar o buffer',
+      );
     }
 
     res.writeHead(200, {

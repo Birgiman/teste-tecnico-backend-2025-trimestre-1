@@ -3,6 +3,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { Cache } from 'cache-manager';
 import { CacheTTL } from 'src/config/constants';
@@ -30,12 +31,6 @@ export class StaticService {
     }
 
     const buffer = await this.storage.readAsBuffer(filename);
-    if (!buffer || !Buffer.isBuffer(buffer) || buffer.length === 0) {
-      throw new InternalServerErrorException(
-        'Arquivo inválido ou corrompido no armazenamento',
-      );
-    }
-
     await this.cache.set(filename, buffer, CacheTTL.DEFAULT);
 
     return { buffer };
@@ -44,27 +39,20 @@ export class StaticService {
   async getFileStream(filename: string): Promise<CachedVideoResponse> {
     const exists = await this.storage.exists(filename);
     if (!exists) {
-      throw new Error(`Arquivo não encontrado: ${filename}`);
+      throw new NotFoundException(`Arquivo não encontrado: ${filename}`);
     }
 
-    const path = await this.storage.getPath(filename);
-    const stat = await this.storage.stat(filename);
-
-    return {
-      path,
-      size: stat.size,
-    };
-  }
-
-  async cachedFile(filename: string): Promise<void> {
-    const buffer = await this.storage.readAsBuffer(filename);
-    if (!buffer || !Buffer.isBuffer(buffer) || buffer.length === 0) {
-      console.warn(
-        `[REDIS] Não foi possível criar cache para ${filename}: buffer vazio ou inválido. Possível problema durante o upload.`,
+    try {
+      const path = await this.storage.getPath(filename);
+      const stat = await this.storage.stat(filename);
+      return {
+        path,
+        size: stat.size,
+      };
+    } catch {
+      throw new InternalServerErrorException(
+        'Erro ao acessar o arquivo para streaming',
       );
-      return;
     }
-    await this.cache.set(filename, buffer, CacheTTL.DEFAULT);
-    console.log('[REDIS] Cache criado para', filename);
   }
 }

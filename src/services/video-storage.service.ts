@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Stats } from 'fs';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -18,12 +22,10 @@ export class VideoStorageService {
   }
 
   async exists(filename: string): Promise<boolean> {
-    const fullPath = this.getFullPath(filename);
     try {
       await fs.access(this.getFullPath(filename));
       return true;
     } catch {
-      console.log('[EXISTS] Arquivo não encontrado em:', fullPath);
       return false;
     }
   }
@@ -36,10 +38,20 @@ export class VideoStorageService {
 
   async readAsBuffer(filename: string): Promise<Buffer> {
     const fullPath = this.getFullPath(filename);
-    return await fs.readFile(fullPath);
+    try {
+      return await fs.readFile(fullPath);
+    } catch {
+      throw new NotFoundException(`Arquivo não encontrado: ${filename}`);
+    }
   }
 
   async stat(filename: string): Promise<Stats> {
-    return await fs.stat(this.getFullPath(filename));
+    try {
+      return await fs.stat(this.getFullPath(filename));
+    } catch {
+      throw new InternalServerErrorException(
+        `Erro ao ler o arquivo: ${filename}`,
+      );
+    }
   }
 }

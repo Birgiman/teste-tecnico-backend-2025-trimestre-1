@@ -1,9 +1,10 @@
 import { CacheModule } from '@nestjs/cache-manager';
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { createKeyv } from '@keyv/redis';
+import { MulterErrorMiddleware } from './error-handling/multer-error-middlewere';
 import { StaticModule } from './static/static.module';
 import { UploadModule } from './upload/upload.module';
 
@@ -25,4 +26,8 @@ const port = process.env.REDIS_PORT ?? '6379';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(MulterErrorMiddleware).forRoutes('upload');
+  }
+}
