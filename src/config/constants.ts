@@ -29,3 +29,23 @@ export enum FileSizeLimit {
   /** Tamanho padrão: 50MB (50 * 1024 * 1024 bytes) */
   LARGE = 50 * 1024 * 1024,
 }
+
+/**
+ * Extensões de vídeos suportadas para upload.
+ */
+export enum SupportedVideoExtensions {
+  //* Fortmato de vídeo .mp4
+  MP4 = 'video/mp4',
+  //* Fortmato de vídeo .mkv
+  MKV = 'video/x-matroska',
+  //* Fortmato de vídeo .webm
+  WEBM = 'video/webm',
+  //* Fortmato de vídeo .mov
+  MOV = 'video/quicktime',
+  //* Fortmato de vídeo .avi
+  AVI = 'video/x-msvideo',
+  //* Fortmato de vídeo .flv
+  FLV = 'video/x-flv',
+  //* Fortmato de vídeo .m4v
+  M4V = 'video/x-m4v',
+}

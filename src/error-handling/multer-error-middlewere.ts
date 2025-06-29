@@ -3,7 +3,9 @@ import { NextFunction, Request, Response } from 'express';
 import * as multer from 'multer';
 import { MulterError } from 'multer';
 import * as path from 'path';
-import { FileSizeLimit } from 'src/config/constants';
+import { FileSizeLimit, SupportedVideoExtensions } from 'src/config/constants';
+
+const allowedMimeTypes: string[] = Object.values(SupportedVideoExtensions);
 
 @Injectable()
 export class MulterErrorMiddleware implements NestMiddleware {
@@ -23,7 +25,7 @@ export class MulterErrorMiddleware implements NestMiddleware {
       }),
       limits: { fileSize: FileSizeLimit.DEFAULT },
       fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('video/')) {
+        if (allowedMimeTypes.includes(file.mimetype)) {
           cb(null, true);
         } else {
           cb(
