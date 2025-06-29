@@ -17,23 +17,38 @@ export class StaticService {
     private readonly storage: VideoStorageService,
   ) {}
 
-  async getFileBuffer(filename: string): Promise<CachedVideoResponse | false> {
-    const exists = await this.storage.exists(filename);
-    if (!exists) return false;
+  private async getDiskMetadata(filename: string) {
+    const path = await this.storage.getPath(filename);
+    const stat = await this.storage.stat(filename);
 
+    return { path, size: stat.size };
+  }
+
+  private async ensureCache(filename: string): Promise<CachedVideoResponse> {
     console.log('[GET] Checking cache...');
     const cached = await this.cache.get<Buffer>(filename);
     console.log('[CACHED]', !!cached);
 
     if (cached) {
       console.log('[REDIS] Cache usado para', filename);
-      return { buffer: cached };
+      return { buffer: cached, fromCache: true };
     }
 
     const buffer = await this.storage.readAsBuffer(filename);
     await this.cache.set(filename, buffer, CacheTTL.DEFAULT);
+    console.log('[REDIS] Cache criado para', filename);
 
-    return { buffer };
+    const { path, size } = await this.getDiskMetadata(filename);
+
+    return { path, size, fromCache: false };
+  }
+
+  async getFileBuffer(filename: string): Promise<CachedVideoResponse> {
+    const exists = await this.storage.exists(filename);
+    if (!exists) {
+      throw new NotFoundException(`Arquivo não encontrado: ${filename}`);
+    }
+    return this.ensureCache(filename);
   }
 
   async getFileStream(filename: string): Promise<CachedVideoResponse> {
@@ -43,12 +58,9 @@ export class StaticService {
     }
 
     try {
-      const path = await this.storage.getPath(filename);
-      const stat = await this.storage.stat(filename);
-      return {
-        path,
-        size: stat.size,
-      };
+      const { path, size } = await this.getDiskMetadata(filename);
+
+      return { path, size };
     } catch {
       throw new InternalServerErrorException(
         'Erro ao acessar o arquivo para streaming',

@@ -24,16 +24,28 @@ export class StaticController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    const file = await this.staticService.getFileStream(filename);
-    if (!file) {
-      throw new NotFoundException('Arquivo não encontrado');
+    const isRangeRequest = Boolean(req.headers.range);
+
+    if (!isRangeRequest) {
+      const file = await this.staticService.getFileBuffer(filename);
+
+      if (file.fromCache) {
+        console.log(
+          '[REDIS] Streaming arquivo diretamente do cache:',
+          filename,
+        );
+        return this.responseService.streamFromBuffer(res, file.buffer);
+      }
     }
 
-    if (file.buffer) {
-      this.responseService.streamFromBuffer(res, file.buffer);
-    } else {
-      const stream = createReadStream(file.path);
-      this.responseService.streamWithRange(req, res, file.size, stream);
+    const file = await this.staticService.getFileStream(filename);
+    if (!file.path || !file.size) {
+      throw new NotFoundException('Arquivo não encontrado ou inválido');
     }
+
+    const stream = createReadStream(file.path);
+    console.log('[DISK] Streaming arquivo diretamente do disco:', filename);
+
+    return this.responseService.streamWithRange(req, res, file.size, stream);
   }
 }
