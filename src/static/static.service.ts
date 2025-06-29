@@ -26,16 +26,19 @@ export class StaticService {
 
   private async ensureCache(filename: string): Promise<CachedVideoResponse> {
     console.log('[GET] Checking cache...');
-    const cached = await this.cache.get<Buffer>(filename);
-    console.log('[CACHED]', !!cached);
+    const cached = await this.cache.get(filename);
+    const isBuffer = Buffer.isBuffer(cached);
+    console.log('[CACHED]', !!isBuffer);
 
-    if (cached) {
+    if (isBuffer) {
       console.log('[REDIS] Cache usado para', filename);
       return { buffer: cached, fromCache: true };
+    } else {
+      console.warn('[ERRO] Buffer inválido ou ausente no cache');
     }
 
     const buffer = await this.storage.readAsBuffer(filename);
-    await this.cache.set(filename, buffer, CacheTTL.DEFAULT);
+    await this.cache.set(filename, Buffer.from(buffer), CacheTTL.DEFAULT);
     console.log('[REDIS] Cache criado para', filename);
 
     const { path, size } = await this.getDiskMetadata(filename);

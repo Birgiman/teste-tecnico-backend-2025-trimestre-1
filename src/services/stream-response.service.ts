@@ -36,7 +36,7 @@ export class StreamResponseService {
   }
   streamFromBuffer(res: Response, buffer: Buffer) {
     if (!Buffer.isBuffer(buffer)) {
-      console.error('[ERRO] Buffer inválido ou ausente no cache');
+      console.error('[ERRO] streamFromBuffer recebeu um valor inválido');
       throw new InternalServerErrorException(
         'Erro interno ao processar o buffer',
       );
